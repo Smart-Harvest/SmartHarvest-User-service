@@ -117,7 +117,10 @@ jobs:
 
   # release → build + push release-tagged image
   publish-release:
-    if: github.event_name == 'release'
+    if: >-
+      github.event_name == 'release' &&
+      github.event.release.target_commitish == 'main' &&
+      github.event.release.prerelease == false
     uses: Smart-Harvest/SmartHarvest-workflows/.github/workflows/_docker-publish.yml@develop
     with:
       service-name: user-service
