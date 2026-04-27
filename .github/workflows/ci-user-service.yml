@@ -96,50 +96,6 @@ jobs:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
 
-  # main — pull SHA image → retag to semver → push (NO rebuild)
-  publish-main:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    uses: Smart-Harvest/SmartHarvest-workflows/.github/workflows/_docker-publish.yml@develop
-    with:
-      service-name: user-service
-      service-path: .
-      environment: main
-    secrets:
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-      DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-
-  # ═══════════════════════════════════════════════════════════
-  # 5. CD — Update Helm Values (triggers ArgoCD auto-sync)
-  # ═══════════════════════════════════════════════════════════
-
-  # develop → values/values-dev.yaml
-  cd-develop:
-    needs: [publish-develop]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
-    uses: Smart-Harvest/SmartHarvest-workflows/.github/workflows/_cd-template.yml@develop
-    with:
-      service-name: user-service
-      image-tag: dev-${{ github.sha }}
-      environment: develop
-    secrets:
-      HELM_REPO_PAT: ${{ secrets.HELM_REPO_PAT }}
-
-  # main → values/values-prod.yaml
-  cd-main:
-    needs: [publish-main]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    uses: Smart-Harvest/SmartHarvest-workflows/.github/workflows/_cd-template.yml@develop
-    with:
-      service-name: user-service
-      image-tag: ${{ needs.publish-main.outputs.image-tag }}
-      environment: main
-    secrets:
-      HELM_REPO_PAT: ${{ secrets.HELM_REPO_PAT }}
-
-  # ═══════════════════════════════════════════════════════════
-  # 6. RELEASE — Tag-based prod deployment (e.g., v1.0.0)
-  # ═══════════════════════════════════════════════════════════
-
   # release → build + push release-tagged image
   publish-release:
     if: github.event_name == 'release'
@@ -148,6 +104,7 @@ jobs:
       service-name: user-service
       service-path: .
       environment: main
+      image-tag: ${{ github.event.release.tag_name }}
     secrets:
       DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
       DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
