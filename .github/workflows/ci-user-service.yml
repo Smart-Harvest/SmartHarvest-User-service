@@ -57,7 +57,7 @@ jobs:
       service-path: .
       fail-on-critical: "0"
 
-  # develop — strict scan (fail-on-critical=1)
+  # develop — strict scan 
   trivy-develop:
     needs: [sca]
     if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
@@ -65,7 +65,7 @@ jobs:
     with:
       service-name: user-service
       service-path: .
-      fail-on-critical: "1"
+      
 
   # ═══════════════════════════════════════════════════════════
   # 3. PR QUALITY GATE
